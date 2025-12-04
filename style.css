@@ -1,0 +1,286 @@
+/* ===========================
+   Global
+   =========================== */
+html, body {
+  height: 100%;
+  background: #111;
+  color: #fff;
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+/* ===========================
+   Title
+   =========================== */
+#title {
+  margin-left: 650px;
+  color: white;
+}
+#title h1 {
+  color: white;
+  margin: 16px 0;
+}
+
+/* ===========================
+   Buttons
+   =========================== */
+.btn {
+  background-color: rgb(65,65,65);
+  color: white;
+  border: solid 2px white;
+  font-weight: 700;
+  padding: 1em 2em;
+  border-radius: 20px;
+  font-size: large;
+  margin: 1em;
+  cursor: pointer;
+  transition: box-shadow 200ms ease, background-color 200ms ease, transform 150ms ease;
+  will-change: box-shadow, transform;
+}
+.btn:hover {
+  background-color: rgba(255,255,255,0.66);
+}
+.btn.active {
+  background-color: rgba(0,200,255,0.8);
+  color: black;
+}
+
+/* ===========================
+   Divider
+   =========================== */
+#div {
+  border-style: solid;
+  background-color: white;
+  padding-bottom: 5px;
+  margin-left: -7px;
+  margin-right: -7px;
+}
+
+/* ===========================
+   Bottom Audio Control Bar
+   =========================== */
+.audio-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #333;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px;
+  z-index: 10;
+}
+.audio-bar button {
+  border: none;
+  background-color: white;
+  color: black;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: large;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.15s ease;
+}
+.audio-bar button:hover {
+  background-color: rgba(255,255,255,0.7);
+}
+.audio-bar button:active {
+  transform: scale(0.98);
+}
+
+/* ===========================
+   Sidebar
+   =========================== */
+#sidebar {
+  position: fixed;
+  right: -320px;          /* hidden off-screen */
+  top: 0;
+  width: 300px;
+  height: 100%;
+  background: #222;
+  color: white;
+  padding: 20px;
+  transition: right 0.3s ease;
+  z-index: 20;
+  box-shadow: -6px 0 12px rgba(0,0,0,0.4);
+  overflow-y: auto;
+}
+#sidebar.open {
+  right: 0;               /* slide in */
+}
+#sidebar h2 {
+  margin-top: 0;
+}
+#sidebar label {
+  display: block;
+  margin: 15px 0;
+}
+#sidebar input[type="range"] {
+  width: 100%;
+}
+
+/* Reset Controls button (ugly class) */
+#sidebar button.ugly {
+  display: block;
+  width: 100%;
+  margin-top: 15px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ff4d4d, #ff1a75);
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.15s ease, box-shadow 0.3s ease;
+}
+#sidebar button.ugly:hover {
+  background: linear-gradient(135deg, #ff6666, #ff3385);
+  box-shadow: 0 0 12px rgba(255, 50, 100, 0.8);
+}
+#sidebar button.ugly:active {
+  transform: scale(0.97);
+}
+
+/* ===========================
+   Keyboard Shortcuts Panel
+   =========================== */
+#shortcutsPanel {
+  position: fixed;
+  top: 50px;
+  left: 5px;              /* 5px space from left */
+  width: 250px;
+  background: #444;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+  display: none;
+  z-index: 30;
+}
+#shortcutsPanel h2 {
+  margin-top: 0;
+}
+#shortcutsPanel ul {
+  list-style: none;
+  padding: 0;
+}
+#shortcutsPanel li {
+  margin: 8px 0;
+}
+#shortcutsPanel button {
+  margin-top: 10px;
+  border: none;
+  background: white;
+  color: black;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+#shortcutsPanel button:hover {
+  background: rgba(255,255,255,0.7);
+}
+
+/* ===========================
+   Background Grid
+   =========================== */
+#bgGrid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  z-index: -1;
+}
+.bgSquare {
+  background: #111;
+  transition: background-color 0.05s linear;
+}
+
+/* ===========================
+   Crazy Pulse Animation
+   =========================== */
+@keyframes extremePulse {
+  0%   { box-shadow: 0 0 100px cyan, 0 0 200px magenta; transform: scale(1); }
+  25%  { box-shadow: 0 0 200px magenta, 0 0 300px cyan; transform: scale(1.1); }
+  50%  { box-shadow: 0 0 300px cyan, 0 0 450px magenta; transform: scale(0.9); }
+  75%  { box-shadow: 0 0 400px magenta, 0 0 600px cyan; transform: scale(1.2); }
+  100% { box-shadow: 0 0 500px cyan, 0 0 800px magenta; transform: scale(0.85); }
+}
+.extreme-pulse {
+  animation: extremePulse 0.3s infinite;
+  will-change: box-shadow, transform;
+}
+.extreme-pulse-ui {
+  animation: extremePulse 0.3s infinite;
+  will-change: box-shadow, transform;
+}
+
+/* ===========================
+   Extreme Shake Animation
+   =========================== */
+@keyframes extremeShake {
+  0%   { transform: translate(0px, 0px) rotate(0deg); }
+  10%  { transform: translate(-5px, -5px) rotate(-1deg); }
+  20%  { transform: translate(5px, -5px) rotate(1deg); }
+  30%  { transform: translate(-5px, 5px) rotate(1deg); }
+  40%  { transform: translate(5px, 5px) rotate(-1deg); }
+  50%  { transform: translate(-8px, 0px) rotate(0deg); }
+  60%  { transform: translate(8px, 0px) rotate(1deg); }
+  70%  { transform: translate(0px, -8px) rotate(-1deg); }
+  80%  { transform: translate(0px, 8px) rotate(1deg); }
+  90%  { transform: translate(-5px, -5px) rotate(0deg); }
+  100% { transform: translate(5px, 5px) rotate(0deg); }
+}
+.extreme-shake {
+  animation: extremeShake 0.4s infinite;
+  will-change: transform;
+}
+
+/* ===========================
+   Smooth fade-out
+   =========================== */
+.fade-out {
+  transition: box-shadow 0.8s ease, transform 0.8s ease;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ===========================
+   Particle Effects
+   =========================== */
+#particleContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+  opacity: 0.9;
+  transition: opacity 0.8s ease, background-color 0.1s linear;
+  animation: particleShake 0.3s infinite;
+}
+
+/* Particle Shake Animation */
+@keyframes particleShake {
+  0%   { transform: translate(0px, 0px) rotate(0deg); }
+  25%  { transform: translate(-6px, 3px) rotate(-4deg); }
+  50%  { transform: translate(6px, -3px) rotate(4deg); }
+  75%  { transform: translate(-4px, -6px) rotate(3deg); }
+  100% { transform: translate(4px, 6px) rotate(-3deg); }
+}

@@ -1,0 +1,512 @@
+
+
+
+// ===========================
+// Sound List
+// ===========================
+const sounds = [
+  { file: "dog_whistle.mp3", label: "Dog Whistle" },
+  { file: "bell.mp3", label: "School Bell" },
+  { file: "airhorn.mp3", label: "Air Horn" },
+  { file: "bassbomb.mp3", label: "Bass Bomb" },
+  { file: "bassscream.mp3", label: "Bass Scream" },
+  { file: "weirdbeep.mp3", label: "Weird Beep" },
+  { file: "fahhhhhhhhhhhhhh.mp3", label: "FAHHHHH" },
+  { file: "im-white-im-black-im-yellow-and-im-single.mp3", label: "And Im Single" },
+  { file: "you-stupid-n_HZ0QaiA.mp3", label: "You stupid n-" },
+  { file: "l-yl-bs-krnj.mp3", label: "لا يالعباس كرنج" },
+  { file: "applepay.mp3", label: "Apple Pay" },
+  { file: "sukuna-gugu-gaga-loudest.mp3", label: "GUGU GAGA" },
+  { file: "wheredidihearthisbefore.mp3", label: "where did i hear this before??" },
+  { file: "fortnite.mp3", label: "For Fortnite Fans" },
+  { file: "glitch.mp3", label: "Ģ̵͙͠!̴͚̈́ĭ̷̢͚t̸̩́ć̸̱h̴̩̝͠" },
+  { file: "spooderman.mp3", label: "spooderman" },
+  { file: "messenger.mp3", label: "Facebook Calling" },
+  { file: "reflection.mp3", label: "iPhone Ringtone" },
+  { file: "nigga.mp3", label: "Lolipop Man" },
+];
+
+let audioCtx, sourceNode, gainNode, bassFilter, distortionNode;
+let activeButton = null;
+let currentBuffer = null;
+let isLooping = false, isMuted = false;
+let speedValue = 1, bassValue = 0, reverseEnabled = false;
+
+// ===========================
+// Audio Context Setup
+// ===========================
+function initAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    gainNode = audioCtx.createGain();
+
+    bassFilter = audioCtx.createBiquadFilter();
+    bassFilter.type = "lowshelf";
+    bassFilter.frequency.value = 200;
+    bassFilter.gain.value = 0;
+
+    distortionNode = audioCtx.createWaveShaper();
+    distortionNode.curve = makeDistortionCurve(0);
+
+    bassFilter.connect(distortionNode);
+    distortionNode.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+  }
+}
+
+// ===========================
+// Play Sound
+// ===========================
+async function playSound(file, buttonElement) {
+  stopAllAudio();
+  initAudioContext();
+  activeButton = buttonElement;
+  activeButton.classList.add("active");
+  activeButton.dataset.file = file;
+
+  const response = await fetch(file);
+  const arrayBuffer = await response.arrayBuffer();
+  currentBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+  if (reverseEnabled) {
+    for (let i = 0; i < currentBuffer.numberOfChannels; i++) {
+      Array.prototype.reverse.call(currentBuffer.getChannelData(i));
+    }
+  }
+
+  startSource(currentBuffer);
+}
+
+let isPlaying = false; // global playback state
+
+function startSource(buffer) {
+  if (sourceNode) sourceNode.disconnect();
+  sourceNode = audioCtx.createBufferSource();
+  sourceNode.buffer = buffer;
+  sourceNode.loop = isLooping;
+
+  // Apply stored speed
+  sourceNode.playbackRate.value = speedValue;
+
+  // Apply stored bass/distortion
+  if (bassFilter) bassFilter.gain.value = bassValue * 10;
+  if (distortionNode) distortionNode.curve = makeDistortionCurve(bassValue * 50);
+
+  sourceNode.connect(bassFilter);
+  sourceNode.start(0);
+  isPlaying = true; // mark as playing
+
+  // ✅ Chaos only if audio is playing AND bass=10
+  if (bassValue === 10 && isPlaying) {
+    triggerChaos();
+  } else if (activeButton && isPlaying) {
+    activeButton.style.boxShadow =
+      `0 0 ${20 + bassValue*6}px rgba(0,255,255,1),
+       0 0 ${40 + bassValue*12}px rgba(255,0,255,0.85)`;
+  }
+
+    sourceNode.onended = () => {
+    isPlaying = false; // reset when finished
+    if (!isLooping) stopChaos();
+    if (activeButton) {
+      activeButton.classList.remove("active");
+      activeButton.style.boxShadow = "";
+      activeButton = null; // ✅ clear reference so slider can't use it later
+    }
+  };
+}
+
+function stopAllAudio() {
+  if (sourceNode) {
+    try { sourceNode.stop(); } catch {}
+    sourceNode.disconnect();
+  }
+  sourceNode = null;
+  currentBuffer = null;
+  isLooping = false;
+  isPlaying = false; // ensure stopped state
+
+  stopChaos();
+
+  if (activeButton) {
+    activeButton.classList.remove("active", "extreme-pulse");
+    activeButton.style.boxShadow = "";
+    activeButton = null;
+  }
+
+  const loopBtn = document.getElementById("loopBtn");
+  if (loopBtn) loopBtn.innerText = "🔁 Loop: OFF";
+}
+
+
+function stopAllAudio() {
+  if (sourceNode) {
+    try { sourceNode.stop(); } catch {}
+    sourceNode.disconnect();
+  }
+  sourceNode = null;
+  currentBuffer = null;
+  isLooping = false;
+  isPlaying = false; // ensure stopped state
+
+  stopChaos();
+
+  if (activeButton) {
+    activeButton.classList.remove("active", "extreme-pulse");
+    activeButton.style.boxShadow = "";
+    activeButton = null;
+  }
+
+  const loopBtn = document.getElementById("loopBtn");
+  if (loopBtn) loopBtn.innerText = "🔁 Loop: OFF";
+}
+
+
+// ===========================
+// Chaos Effects
+// ===========================
+function triggerChaos() {
+  if (!sourceNode) return;
+
+  const title = document.getElementById("title");
+  const audioBar = document.querySelector(".audio-bar");
+  const sidebar = document.getElementById("sidebar");
+  const buttons = document.querySelectorAll(".btn");
+  const body = document.body; // 👈 new
+
+  if (activeButton) activeButton.classList.add("extreme-pulse");
+  [title, audioBar, sidebar, body].forEach(el => el.classList.add("extreme-pulse-ui"));
+  [title, audioBar, sidebar, body, ...buttons].forEach(el => {
+    el.classList.add("extreme-shake");
+    el.classList.add("extreme-pulse");
+  });
+
+  spawnParticles(200);
+  startUIFlash();
+}
+
+function stopChaos() {
+  const title = document.getElementById("title");
+  const audioBar = document.querySelector(".audio-bar");
+  const sidebar = document.getElementById("sidebar");
+  const buttons = document.querySelectorAll(".btn");
+  const body = document.body;
+
+  [title, audioBar, sidebar, body, ...buttons].forEach(el => {
+    el.classList.remove("extreme-shake", "extreme-pulse", "extreme-pulse-ui");
+  });
+
+  clearParticles();
+  stopUIFlash();
+}
+
+
+function stopChaos() {
+  const title = document.getElementById("title");
+  const audioBar = document.querySelector(".audio-bar");
+  const sidebar = document.getElementById("sidebar");
+  const buttons = document.querySelectorAll(".btn");
+  const body = document.body;
+
+  [title, audioBar, sidebar, body, ...buttons].forEach(el => {
+    el.classList.remove("extreme-shake", "extreme-pulse", "extreme-pulse-ui");
+  });
+
+  clearParticles();
+  stopUIFlash();
+}
+
+// Create 60 squares
+document.addEventListener("DOMContentLoaded", () => {
+  const grid = document.getElementById("bgGrid");
+  for (let i = 0; i < 60; i++) {
+    const square = document.createElement("div");
+    square.className = "bgSquare";
+    grid.appendChild(square);
+  }
+});
+
+// Chaos flashing
+let bgFlashInterval = null;
+
+function startBgFlash() {
+  const squares = document.querySelectorAll(".bgSquare");
+  if (bgFlashInterval) clearInterval(bgFlashInterval);
+
+  bgFlashInterval = setInterval(() => {
+    squares.forEach(sq => {
+      sq.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+    });
+  }, 50); // every 50ms
+}
+
+function stopBgFlash() {
+  if (bgFlashInterval) {
+    clearInterval(bgFlashInterval);
+    bgFlashInterval = null;
+  }
+  // reset to dark
+  document.querySelectorAll(".bgSquare").forEach(sq => {
+    sq.style.backgroundColor = "#111";
+  });
+}
+
+
+// ===========================
+// Stop Audio
+// ===========================
+function stopAllAudio() {
+  if (sourceNode) {
+    try { sourceNode.stop(); } catch {}
+    sourceNode.disconnect();
+  }
+  sourceNode = null;
+  currentBuffer = null;
+  isLooping = false;
+  isPlaying = false;
+
+  stopChaos();
+
+  if (activeButton) {
+    activeButton.classList.remove("active", "extreme-pulse");
+    activeButton.style.boxShadow = "";
+    activeButton = null; // ✅ clear reference
+  }
+
+  const loopBtn = document.getElementById("loopBtn");
+  if (loopBtn) loopBtn.innerText = "🔁 Loop: OFF";
+}
+
+
+
+
+// ===========================
+// Controls
+// ===========================
+// === Mute toggle ===
+
+function toggleMute() {
+  isMuted = !isMuted;
+
+  // Adjust gain node volume
+  if (gainNode) {
+    gainNode.gain.value = isMuted ? 0 : 1; 
+  }
+
+  // Update UI text
+  const status = document.getElementById("muteStatus");
+  if (status) {
+    status.innerText = isMuted ? "Muted" : "Unmuted";
+  }
+
+  // Update button label
+  const muteBtn = document.getElementById("muteBtn");
+  if (muteBtn) {
+    muteBtn.innerText = isMuted ? "🔇 Muted" : "🔊 Unmuted";
+  }
+}
+
+
+function toggleLoop() {
+  isLooping = !isLooping;
+  document.getElementById("loopBtn").innerText = isLooping ? "🔁 Loop: ON" : "🔁 Loop: OFF";
+  if (sourceNode) sourceNode.loop = isLooping;
+}
+
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("open");
+}
+
+function makeDistortionCurve(amount) {
+  let n_samples = 44100, curve = new Float32Array(n_samples), deg = Math.PI/180;
+  for (let i=0;i<n_samples;++i) {
+    let x = i*2/n_samples - 1;
+    curve[i] = ((3+amount)*x*20*deg)/(Math.PI+amount*Math.abs(x));
+  }
+  return curve;
+}
+
+// ===========================
+// Reset Controls
+// ===========================
+function resetControls() {
+  speedValue = 1;
+  bassValue = 0;
+  reverseEnabled = false;
+
+  document.getElementById("speedControl").value = 1;
+  document.getElementById("speedValue").innerText = "1x";
+
+  document.getElementById("bassControl").value = 0;
+  document.getElementById("bassValue").innerText = "0";
+
+  document.getElementById("reverseControl").checked = false;
+
+  if (bassFilter) bassFilter.gain.value = 0;
+  if (distortionNode) distortionNode.curve = makeDistortionCurve(0);
+
+  stopChaos();
+
+  if (activeButton) {
+    activeButton.classList.remove("extreme-pulse");
+    activeButton.style.boxShadow = "";
+  }
+
+  if (sourceNode) {
+    sourceNode.playbackRate.value = speedValue;
+    sourceNode.loop = isLooping;
+  }
+}
+
+// ===========================
+// Particle Effects
+// ===========================
+const particleContainer = document.createElement("div");
+particleContainer.id = "particleContainer";
+document.body.appendChild(particleContainer);
+
+function spawnParticles(count = 150) {
+  particleContainer.innerHTML = "";
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("div");
+    p.className = "particle";
+    p.style.left = Math.random() * window.innerWidth + "px";
+    p.style.top = Math.random() * window.innerHeight + "px";
+    particleContainer.appendChild(p);
+
+    const colorInterval = setInterval(() => {
+      p.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+    }, 50);
+
+    const driftInterval = setInterval(() => {
+      const angle = Math.random() * 2 * Math.PI;
+      const dx = Math.cos(angle) * 50;
+      const dy = Math.sin(angle) * 50;
+      const x = parseFloat(p.style.left) + dx;
+      const y = parseFloat(p.style.top) + dy;
+      p.style.left = Math.max(0, Math.min(window.innerWidth, x)) + "px";
+      p.style.top = Math.max(0, Math.min(window.innerHeight, y)) + "px";
+    }, 250);
+
+    p.dataset.colorInterval = colorInterval;
+    p.dataset.driftInterval = driftInterval;
+  }
+}
+
+function clearParticles() {
+  const particles = document.querySelectorAll("#particleContainer .particle");
+  particles.forEach(p => {
+    p.style.opacity = "0";
+    clearInterval(Number(p.dataset.colorInterval));
+    clearInterval(Number(p.dataset.driftInterval));
+    setTimeout(() => {
+      if (p.parentNode) p.parentNode.removeChild(p);
+    }, 800);
+  });
+}
+
+// ===========================
+// UI Flash Effects
+// ===========================
+function startUIFlash() {
+  if (!sourceNode) return; // only flash if audio is playing
+
+  const title = document.getElementById("title");
+  const audioBar = document.querySelector(".audio-bar");
+  const sidebar = document.getElementById("sidebar");
+  const buttons = document.querySelectorAll(".btn");
+
+  if (window.uiFlashInterval) clearInterval(window.uiFlashInterval);
+
+  window.uiFlashInterval = setInterval(() => {
+    // each element gets its own random color
+    title.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+    audioBar.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+    sidebar.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+
+    buttons.forEach(btn => {
+      btn.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+      btn.style.color = "#000"; // keep text readable
+    });
+  }, 200); // change every 200ms
+}
+
+function stopUIFlash() {
+  if (window.uiFlashInterval) {
+    clearInterval(window.uiFlashInterval);
+    window.uiFlashInterval = null;
+
+    const title = document.getElementById("title");
+    const audioBar = document.querySelector(".audio-bar");
+    const sidebar = document.getElementById("sidebar");
+    const buttons = document.querySelectorAll(".btn");
+
+    // reset styles
+    title.style.backgroundColor = "";
+    audioBar.style.backgroundColor = "";
+    sidebar.style.backgroundColor = "";
+    buttons.forEach(btn => {
+      btn.style.backgroundColor = "";
+      btn.style.color = "";
+    });
+  }
+}
+
+// ===========================
+// Auto-generate Sound Buttons
+// ===========================
+document.addEventListener("DOMContentLoaded", () => {
+  const buttonContainer = document.getElementById("buttonContainer");
+
+  sounds.forEach(sound => {
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.innerText = sound.label;
+
+    btn.addEventListener("click", () => {
+      playSound(sound.file, btn);
+    });
+
+    buttonContainer.appendChild(btn);
+  });
+});
+
+
+speedControl.addEventListener("input", e => {
+  speedValue = parseFloat(e.target.value);
+  document.getElementById("speedValue").innerText = speedValue + "x";
+  if (sourceNode) sourceNode.playbackRate.value = speedValue;
+});
+
+
+ // === Bass control ===
+const bassControl = document.getElementById("bassControl");
+bassControl.addEventListener("input", e => {
+  bassValue = parseInt(e.target.value);
+  document.getElementById("bassValue").innerText = bassValue;
+
+  bassFilter.gain.value = bassValue * 10;
+  distortionNode.curve = makeDistortionCurve(bassValue * 50);
+
+  stopChaos();
+
+  if (bassValue === 10 && isPlaying) {
+    triggerChaos();
+  } else if (activeButton && isPlaying) {
+    activeButton.style.boxShadow =
+      `0 0 ${20 + bassValue*6}px rgba(0,255,255,1),
+       0 0 ${40 + bassValue*12}px rgba(255,0,255,0.85)`;
+  }
+});
+
+// === Reverse control ===
+const reverseControl = document.getElementById("reverseControl");
+reverseControl.addEventListener("change", e => {
+  reverseEnabled = e.target.checked;
+  if (currentBuffer && sourceNode) {
+    stopAllAudio();
+    startSource(currentBuffer); // restart with reversed buffer if needed
+  }
+});
+
+
