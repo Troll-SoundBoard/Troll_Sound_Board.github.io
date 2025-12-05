@@ -14,7 +14,7 @@ const sounds = [
   { file: "fahhhhhhhhhhhhhh.mp3", label: "FAHHHHH" },
   { file: "im-white-im-black-im-yellow-and-im-single.mp3", label: "And Im Single" },
   { file: "you-stupid-n_HZ0QaiA.mp3", label: "You stupid n-" },
-  { file: "l-yl-bs-krnj.mp3", label: "لا يالعباس كرنج" },
+  { file: "arabic.mp3", label: "لا يالعباس كرنج" },
   { file: "applepay.mp3", label: "Apple Pay" },
   { file: "sukuna-gugu-gaga-loudest.mp3", label: "GUGU GAGA" },
   { file: "wheredidihearthisbefore.mp3", label: "where did i hear this before??" },
